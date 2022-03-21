@@ -1,24 +1,24 @@
-import logo from './logo.svg';
-import './App.css';
+import Dashboard from './pages/dashboard';
+import Alarms from './pages/alarms';
+import { AlarmsProvider } from './context/alarms';
+import Layout from './components/layout';
+import {
+  Routes,
+  Route,
+} from "react-router-dom";
+import './app.css'
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <AlarmsProvider>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="alarms" element={<Alarms />} />
+        </Routes>
+      </Layout>
+    </AlarmsProvider>
   );
 }
 
