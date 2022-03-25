@@ -1,73 +1,98 @@
-import * as React from 'react';
-import { v4 as uuid } from 'uuid';
+import React, { useState, useEffect } from 'react';
+import AlarmsService from '../services/clases/alarms'
 
 const AlarmsContext = React.createContext()
 
-export const ALARMS = [
-  {
-    id: '49fe09ae-4207-478e-b419-5d7dd875f561',
-    name: 'asdf',
-    source: 'asd',
-    metric: 'asd',
-    trigger: 'asd',
-    paused: false,
-    active: true
+const AlarmsProvider = ({children}) => {
+  const [alarms, setAlarms] = useState([]);
+  const [filteredAlarms, setFilteredAlarms] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [searching, setSearching] = useState(false);
+
+  const fetchAlarms = async () => {
+    try {
+      setLoading(true)
+      const alarmsList = await AlarmsService.getList()
+      setAlarms(alarmsList)
+      setFilteredAlarms(alarmsList)
+      setLoading(false)
+    } catch(error) {
+      console.log('Error ferching alarms list: ', error.message)
+    }
   }
-];
 
-export const TYPES = {
-  ADD_ALARM: "ADD_ALARM",
-  REMOVE_ALARM: "REMOVE_ALARM",
-  UPDATE_ALARM: "UPDATE_ALARM",
-};
-
-function AlarmsReducer(state, action) {
-  switch (action.type) {
-    case TYPES.ADD_ALARM: {
-      return {
-        ...state,
-        alarms: [...state.alarms, { ...action.payload, id: uuid()}],
-      };
+  const updateAlarm = async (alarm) => {
+    try {
+      const alarmsList = await AlarmsService.updateAlarm(alarms, alarm)
+      setAlarms(alarmsList)
+    } catch(error) {
+      console.log('Error updating alarm: ', error.message)
     }
-    case TYPES.REMOVE_ALARM: {
-      const alarmToDelete = state.alarms.find((item) => item.id === action.payload.id);
-      const updatedState = {
-        ...state,
-        alarms: state.alarms.filter((item) => item.id !== action.payload),
-      }
-
-      return !!alarmToDelete ? updatedState : state;
-    }
-    case TYPES.UPDATE_ALARM: {
-      const updatedAlarms = state.alarms.map(item => {
-          return item.id === action.payload.id ? { ...item, ...action.payload } : item
-        
-      })
-
-      return {
-        ...state,
-        alarms: updatedAlarms,
-      };
-    }
-    default:
-      return state;
   }
+
+  const tooglePause = async (alarm) => {
+    try {
+      const alarmsList = await AlarmsService.updateAlarm(alarms, {...alarm, paused: !alarm.paused })
+      setAlarms(alarmsList)
+    } catch(error) {
+      console.log('Error toogle pause alarm: ', error.message)
+    }
+  }
+
+  const deleteAlarm = async (alarm) => {
+    try {
+      const alarmsList = await AlarmsService.deleteAlarm(alarms, alarm)
+      setAlarms(alarmsList)
+    } catch(error) {
+      console.log('Error deleting alarm: ', error.message)
+    }
+  }
+
+  const createAlarm = async (alarm) => {
+    try {
+      const alarmsList = await AlarmsService.createAlarm(alarms, alarm)
+      setAlarms(alarmsList)
+    } catch(error) {
+      console.log('Error creating alarm: ', error.message)
+    }
+  }
+
+  const searchAlarm = (value, status) => {
+    setSearching(true)
+    const filterAlarms = alarms.filter(alarm => alarm.name.toString().toLowerCase().includes(value.toString().toLowerCase()) && alarm.active === status)
+    setFilteredAlarms(filterAlarms)
+  }
+
+  const clearSearch = () => {
+    setSearching(false)
+    setFilteredAlarms(alarms)
+  }
+
+  useEffect(() => {
+    fetchAlarms();
+  }, [])
+
+  useEffect(() => {
+    !searching && setFilteredAlarms(alarms)
+  }, [searching])
+
+  useEffect(() => {
+    !searching && setFilteredAlarms(alarms)
+  }, [alarms])
+
+  return <AlarmsContext.Provider value={{
+    alarms,
+    filteredAlarms,
+    loading,
+    searching,
+    updateAlarm,
+    tooglePause,
+    deleteAlarm,
+    createAlarm,
+    searchAlarm,
+    clearSearch
+  }}>{children}</AlarmsContext.Provider>
 }
 
-function AlarmsProvider({children}) {
-  const [state, dispatch] = React.useReducer(AlarmsReducer, { alarms: ALARMS })
-
-  const value = {state, dispatch}
-  return <AlarmsContext.Provider value={value}>{children}</AlarmsContext.Provider>
-}
-
-function useAlarms() {
-  const context = React.useContext(AlarmsContext)
-  if (context === undefined) {
-    throw new Error('useAlarms must be used within a Provider')
-  }
-  return context
-}
-
-
-export { AlarmsProvider, useAlarms }
+const AlarmsConsumer = AlarmsContext.Consumer
+export { AlarmsProvider, AlarmsConsumer, AlarmsContext }
