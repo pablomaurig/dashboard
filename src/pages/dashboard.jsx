@@ -1,12 +1,28 @@
-import { useAlarms } from "../context/alarms";
+import React, { useContext } from 'react';
+import { AlarmsContext } from "../context/alarms";
+import Loader from '../components/loader'
+import Charts from '../components/charts'
 
 const Dashboard = () => {
-  const { state } = useAlarms();
-  const { alarms } = state;
+  const alarmsContext = useContext(AlarmsContext)
+  const { alarms, loading } = alarmsContext;
+
   return (
     <>
       <h2>Dashboard</h2>
-      {alarms.map(alarm => <div key={alarm.id}>{alarm.name}</div>)}
+      <div className='grid'>
+        <div>
+          {loading ?
+            <Loader />
+            :
+            <p>{`${alarms.filter(alarm => !alarm.paused && alarm.active ).length}/${alarms.length} Alarms tuned on`}</p>
+          }
+        </div>
+        <div>
+          <Charts />
+        </div>
+      </div>
+      
     </>
   );
 }
