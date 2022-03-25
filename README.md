@@ -2,7 +2,7 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-You can see it running [pablomaurig.github.io/dashboard/](pablomaurig.github.io/dashboard/)
+You can see it running [pablomaurig.github.io/dashboard/](https://pablomaurig.github.io/dashboard/)
 
 ## Before running the app install node packages
 
